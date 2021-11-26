@@ -1,26 +1,20 @@
 use std::fmt;
+use std::io;
+use std::io::Read;
 
-fn main() {
-   let input = "\
-Generation 1:
-7 16
-............*..*
-*...*..***....*.
-*..**......**...
-.....*..*..****.
-*..**......**...
-.....*..*..****.
-............*..*";
 
+fn main() -> io::Result<()> {
+    let mut input = String::new();
+    io::stdin().read_to_string(&mut input)?;
+ 
     let num_generations = 20;
-    let mut universe = Universe::from_string(input);
+    let mut universe = Universe::from_string(&input);
 
     for _ in 0..num_generations {
         println!("{}\r", universe.to_string());
         universe = universe.next_gen();
     }
-    
-    
+    Ok(())
 }
 
 #[derive(Debug, PartialEq)]
@@ -55,7 +49,6 @@ impl Cell {
     }
 }    
     
-
 struct Universe {
     generation: u32,
     height: usize,
@@ -137,9 +130,6 @@ impl Universe {
         self.width
     }
 
-    pub fn cell_count(&self) -> usize {
-        self.cells.len()
-    }
 
     pub fn cell_at(&self, row: usize, col: usize) -> &Cell {
         let index = row * self.width + col;
@@ -237,11 +227,6 @@ mod game_of_life_tests {
     #[test]
     fn a_universe_storese_its_width() {
         assert_eq!(8, simple_universe().width());
-    }
-
-    #[test]
-    fn a_universe_stores_its_cells() {
-        assert_eq!(32, simple_universe().cell_count());
     }
 
     #[test]

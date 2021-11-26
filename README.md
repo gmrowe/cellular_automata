@@ -5,12 +5,13 @@ requirements listed here: https://codingdojo.org/kata/GameOfLife/
 
 ### Executing
 
-If cargo is installed on your system then the program can be invoked by
-cloning the repo and entering:
+The application expects the starting configuration to be passed through
+standard input (sdtin). If cargo is installed on your system then the program
+can be invoked by cloning the repo and entering:
 ```
-cargo run
+cargo run < resources/sample_input
 ```
 from the root directory of the project.
 
-Currently the starting state and number of generations is hardcoded in the
-main() function of main.rs. 
+Currently the number of generations is hardcoded in the main() function of
+main.rs. 
