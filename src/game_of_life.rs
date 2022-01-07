@@ -1,13 +1,43 @@
 use std::fmt;
 
-#[derive(Debug, PartialEq)]
+pub struct Rng {
+    seed: u64
+}
+
+impl Rng {
+    pub fn new(seed: u64) -> Self {
+        Self {
+            seed,
+        }
+    }
+    
+    pub fn next_rnd(&mut self) -> u32 {
+        const M: u64 = 1 << 48;
+        const A: u64 = 25214903917;
+        const C: u64 = 11;
+        self.seed = A.wrapping_mul(self.seed).wrapping_add(C) % M;
+        ((self.seed >> 16) & 0xFFFFFFFF) as u32
+    }
+}
+
+impl Iterator for Rng {
+    type Item = u32;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        Some(self.next_rnd())     
+    }
+
+
+}
+
+
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Cell {
     Alive,
     Dead,
 }
 
 impl Cell {
-
     pub fn next_cell_state(&self, living_neighbors: u8) -> Cell {
         match self {
             Cell::Alive => if living_neighbors < 2 || living_neighbors > 3  {
@@ -40,35 +70,6 @@ pub struct Universe {
 }
 
 impl Universe {
-    fn parse_generation_number_from_header(header: &str) -> u32 {
-        let generation_number_string: String =
-            header.chars().filter(|&c| c.is_ascii_digit()).collect();
-
-        generation_number_string.parse().unwrap()
-    }
-
-    fn parse_height_width_from_header(header: &str) -> (usize, usize) {
-        let height_width: Vec<&str> = header.split_whitespace().collect();
-        let height: usize = height_width[0].parse().unwrap();
-        let width: usize = height_width[1].parse().unwrap();
-        (height, width)
-    }
-
-    fn parse_cells_from_grid(grid: &[&str], height: usize, width: usize) -> Vec<Cell> {
-        let mut cells: Vec<Cell> = Vec::with_capacity(height * width);
-
-        for row in grid {
-            for c in row.chars() {
-                if c == '.' {
-                    cells.push(Cell::Dead);
-                } else {
-                    cells.push(Cell::Alive);
-                }
-            }
-        }
-        cells
-    }
-
     fn display_grid(&self) -> String {
         let symbols: Vec<char> = self
             .cells
@@ -83,18 +84,14 @@ impl Universe {
             .join("\n")
     }
 
-    pub fn from_string(world_string: &str) -> Self {
-        let lines: Vec<&str> = world_string.lines().collect();
-        let generation_header = lines[0];
-        let height_width_header = lines[1];
-        let cell_grid = &lines[2..];
-
-        let generation = Universe::parse_generation_number_from_header(generation_header);
-        let (height, width) = Universe::parse_height_width_from_header(height_width_header);
-        let cells: Vec<Cell> = Universe::parse_cells_from_grid(cell_grid, height, width);
-
+    pub fn new(cell_slice: &[Cell], width: usize) -> Self {
+        let height = cell_slice.len() / width;
+        let mut cells = Vec::new();
+        for &cell in cell_slice {
+            cells.push(cell);
+        }
         Self {
-            generation,
+            generation: 0,
             height,
             width,
             cells,
@@ -112,7 +109,6 @@ impl Universe {
     pub fn width(&self) -> usize {
         self.width
     }
-
 
     pub fn cell_at(&self, row: usize, col: usize) -> &Cell {
         let index = row * self.width + col;
@@ -144,7 +140,7 @@ impl Universe {
             .count() as u8
     }
 
-    pub fn next_gen(&self) -> Self {
+    pub fn next_gen(&mut self) {
         let mut new_cells: Vec<Cell> = Vec::new();
         for r in 0..self.height {
             for c in 0..self.width {
@@ -154,14 +150,10 @@ impl Universe {
                 new_cells.push(new_cell);
             }
         }
-        
-        Self {
-            generation: self.generation + 1,
-            cells: new_cells,
-            ..*self
-        }
-    }
 
+        self.generation += 1;
+        self.cells = new_cells;
+    }
 }
 
 impl fmt::Display for Universe {
