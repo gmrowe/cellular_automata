@@ -4,7 +4,7 @@ mod grid_view;
 mod rng;
 
 use crate::game_of_life::{Cell, Universe};
-use crate::grid_view::GridView;
+use crate::grid_view::{GridView, GridViewModel, Entity, Controller};
 use crate::rng::Rng;
 
 use piston_window::*;
@@ -12,8 +12,11 @@ use std::io;
 
 const FPS: u64 = 60;
 const UPS: u64 = 50;
-const ROWS: usize = 500;
-const COLS: usize = 500;
+const ROWS: usize = 150;
+const COLS: usize = 150;
+
+const ON_COLOR: [f32; 4] = color::BLUE;
+const BACKGROUND_COLOR: [f32; 4] = color::BLACK;
 
 fn random_cells(num: usize) -> Vec<Cell> {
     let seed = 96155;
@@ -32,6 +35,38 @@ fn random_cells(num: usize) -> Vec<Cell> {
     cells
 }
 
+struct GameOfLifeController {
+    model: Universe,
+}
+
+impl GameOfLifeController {
+    pub fn new(model: Universe) -> Self {
+        Self {
+            model
+        }
+    }
+}
+
+impl Controller for GameOfLifeController {
+    fn update(&mut self, _e: &Event) -> GridViewModel {
+        self.model.next_gen();
+        let mut entities = Vec::new();
+        for row in 0..self.model.height() {
+            for col in 0..self.model.width() {
+                if let Cell::Alive = self.model.cell_at(row, col) {
+                    let entity = Entity::new(ON_COLOR, row, col);
+                    entities.push(entity);
+                } 
+            }
+        }
+        GridViewModel::new(
+            self.model.height(),
+            self.model.width(),
+            entities,
+            BACKGROUND_COLOR)
+    }
+}
+
 fn main() -> io::Result<()> {
     let window: PistonWindow = WindowSettings::new("piston: hello_world", [600, 600])
         .exit_on_esc(true)
@@ -43,7 +78,7 @@ fn main() -> io::Result<()> {
     let cells = random_cells(ROWS * COLS);
     let universe = Universe::new(&cells, COLS);
 
-    let mut view = GridView::new(window, events, universe, ROWS, COLS);
+    let mut view = GridView::new(window, events, GameOfLifeController::new(universe));
     view.game_loop();
 
     Ok(())
