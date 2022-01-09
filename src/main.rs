@@ -12,8 +12,8 @@ use std::io;
 
 const FPS: u64 = 60;
 const UPS: u64 = 50;
-const ROWS: usize = 150;
-const COLS: usize = 150;
+const ROWS: usize = 50;
+const COLS: usize = 50;
 
 const ON_COLOR: [f32; 4] = color::BLUE;
 const BACKGROUND_COLOR: [f32; 4] = color::BLACK;

@@ -45,6 +45,20 @@ impl GridViewModel {
     }
 }
 
+enum RenderState {
+    Paused,
+    Running,
+}
+
+impl RenderState {
+    fn toggle(&self) -> Self {
+        match self {
+            Self::Paused => Self::Running,
+            Self::Running => Self::Paused,
+        }
+    }
+}
+
 pub struct GridView<C>
 where
     C: Controller
@@ -53,6 +67,7 @@ where
     events: Events,
     controller: C,
     view_model: Option<GridViewModel>,
+    render_state: RenderState,
 }
 
 impl<C> GridView<C>
@@ -64,6 +79,7 @@ where
             window,
             events,
             controller,
+            render_state: RenderState::Running,
             view_model: None,
         }
     }
@@ -85,6 +101,7 @@ where
 
             });
         }
+        
     }
 
     fn update(&mut self, e: &Event, _args: &UpdateArgs) {
@@ -94,13 +111,24 @@ where
 
     pub fn game_loop(&mut self) {
         while let Some(e) = self.events.next(&mut self.window) {
-            if let Some(args) = e.render_args() {
-                self.render(&e, &args);
+            if let RenderState::Running = self.render_state {
+                if let Some(args) = e.render_args() {
+                    self.render(&e, &args);
+                }
+
+                if let Some(args) = e.update_args() {
+                    self.update(&e, &args);
+                }
             }
 
-            if let Some(args) = e.update_args() {
-                self.update(&e, &args);
+            if let Some(args) = e.button_args() {
+                if let Button::Keyboard(Key::Space) = args.button {
+                    if let ButtonState::Release = args.state {              
+                        self.render_state = self.render_state.toggle()
+                    }                 
+                }
             }
         }
     }
 }
+
