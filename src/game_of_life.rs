@@ -109,6 +109,12 @@ impl Universe {
         self.set_cell_at(row, col, toggled);
     }
 
+    pub fn clear(&mut self) {
+        let all_dead = vec![Cell::Dead; self.cells.len()];
+        self.cells = all_dead;
+        self.generation = 0;
+    }
+
     pub fn in_bounds(&self, row: isize, col: isize) -> bool {
         row >= 0 && row < self.height as isize && col >= 0 && col < self.width as isize
     }
