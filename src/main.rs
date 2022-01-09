@@ -1,9 +1,12 @@
 extern crate piston_window;
 mod game_of_life;
 mod grid_view;
+mod rng;
 
-use crate::game_of_life::{Cell, Rng, Universe};
+use crate::game_of_life::{Cell, Universe};
 use crate::grid_view::GridView;
+use crate::rng::Rng;
+
 use piston_window::*;
 use std::io;
 
