@@ -48,7 +48,7 @@ impl GameOfLifeController {
 }
 
 impl Controller for GameOfLifeController {
-    fn update(&mut self, _e: &Event) -> GridViewModel {
+    fn update(&mut self) -> GridViewModel {
         self.model.next_gen();
         let mut entities = Vec::new();
         for row in 0..self.model.height() {
@@ -65,6 +65,25 @@ impl Controller for GameOfLifeController {
             entities,
             BACKGROUND_COLOR)
     }
+
+    fn mouse_click(&mut self, row: usize, col: usize) -> GridViewModel {
+        self.model.toggle_cell_at(row, col);
+        let mut entities = Vec::new();
+        for row in 0..self.model.height() {
+            for col in 0..self.model.width() {
+                if let Cell::Alive = self.model.cell_at(row, col) {
+                    let entity = Entity::new(ON_COLOR, row, col);
+                    entities.push(entity);
+                } 
+            }
+        }
+        GridViewModel::new(
+            self.model.height(),
+            self.model.width(),
+            entities,
+            BACKGROUND_COLOR)
+    }
+    
 }
 
 fn main() -> io::Result<()> {

@@ -7,7 +7,7 @@ pub enum Cell {
 }
 
 impl Cell {
-    pub fn next_cell_state(&self, living_neighbors: u8) -> Cell {
+    pub fn next_cell_state(&self, living_neighbors: u8) -> Self {
         match self {
             Cell::Alive => {
                 if living_neighbors < 2 || living_neighbors > 3 {
@@ -31,6 +31,13 @@ impl Cell {
         match self {
             Cell::Alive => true,
             Cell::Dead => false,
+        }
+    }
+
+    pub fn toggle(&self) -> Self {
+        match self {
+            Cell::Alive => Cell::Dead,
+            Cell::Dead => Cell::Alive,
         }
     }
 }
@@ -89,6 +96,18 @@ impl Universe {
     pub fn cell_at(&self, row: usize, col: usize) -> &Cell {
         let index = row * self.width + col;
         &self.cells[index]
+    }
+
+    pub fn set_cell_at(&mut self, row: usize, col: usize, new_cell: Cell) {
+        let index = row * self.width + col;
+        self.cells[index] = new_cell;
+        
+    }
+
+    pub fn toggle_cell_at(&mut self, row: usize, col: usize) {
+        let curr_cell = self.cell_at(row, col);
+        let toggled = curr_cell.toggle();
+        self.set_cell_at(row, col, toggled);
     }
 
     pub fn in_bounds(&self, row: isize, col: isize) -> bool {
