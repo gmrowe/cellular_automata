@@ -15,11 +15,7 @@ pub struct Entity {
 
 impl Entity {
     pub fn new(color: [f32; 4], row: usize, col: usize) -> Self {
-        Self {
-            color,
-            row,
-            col,
-        }
+        Self { color, row, col }
     }
 }
 
@@ -35,7 +31,7 @@ impl GridViewModel {
         rows: usize,
         cols: usize,
         entities: Vec<Entity>,
-        background_color: [f32; 4]
+        background_color: [f32; 4],
     ) -> Self {
         Self {
             rows,
@@ -63,7 +59,7 @@ impl PlayState {
 
 pub struct GridView<C>
 where
-    C: Controller
+    C: Controller,
 {
     window: PistonWindow,
     events: Events,
@@ -74,7 +70,7 @@ where
 
 impl<C> GridView<C>
 where
-    C: Controller
+    C: Controller,
 {
     pub fn new(window: PistonWindow, events: Events, controller: C) -> Self {
         Self {
@@ -116,23 +112,17 @@ where
                     rectangle(entity.color, dims, cxt.transform, g);
                 }
             });
-        }  
+        }
     }
 
     fn update(&mut self, _e: &Event) {
         self.view_model = Some(self.controller.update());
-        
     }
 
-    fn handle_button_event(
-        &mut self,
-        _e: &Event,
-        args: &ButtonArgs,
-        pos: Option<[f64; 2]>
-    ) {
+    fn handle_button_event(&mut self, _e: &Event, args: &ButtonArgs, pos: Option<[f64; 2]>) {
         if let Button::Keyboard(Key::Space) = args.button {
             if let ButtonState::Press = args.state {
-                self.play_state = self.play_state.toggle();  
+                self.play_state = self.play_state.toggle();
             }
         }
 
@@ -142,7 +132,6 @@ where
                     let row = (y / self.height()).floor() as usize;
                     let col = (x / self.width()).floor() as usize;
                     self.view_model = Some(self.controller.mouse_click(row, col));
-                    //self.render(e)
                 }
             }
         }
@@ -154,22 +143,20 @@ where
             if let Some(_) = e.render_args() {
                 self.render(&e);
             }
-            
+
             if let PlayState::Running = self.play_state {
                 if let Some(_) = e.update_args() {
-                   self.update(&e);
+                    self.update(&e);
                 }
             }
-           
-            
+
             if let Some(pos) = e.mouse_cursor_args() {
-               last_cursor_pos = Some(pos);
+                last_cursor_pos = Some(pos);
             }
-            
+
             if let Some(args) = e.button_args() {
                 self.handle_button_event(&e, &args, last_cursor_pos);
-           }
+            }
         }
     }
 }
-

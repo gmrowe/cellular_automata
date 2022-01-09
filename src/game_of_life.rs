@@ -101,7 +101,6 @@ impl Universe {
     pub fn set_cell_at(&mut self, row: usize, col: usize, new_cell: Cell) {
         let index = row * self.width + col;
         self.cells[index] = new_cell;
-        
     }
 
     pub fn toggle_cell_at(&mut self, row: usize, col: usize) {

@@ -4,7 +4,7 @@ mod grid_view;
 mod rng;
 
 use crate::game_of_life::{Cell, Universe};
-use crate::grid_view::{GridView, GridViewModel, Entity, Controller};
+use crate::grid_view::{Controller, Entity, GridView, GridViewModel};
 use crate::rng::Rng;
 
 use piston_window::*;
@@ -41,49 +41,38 @@ struct GameOfLifeController {
 
 impl GameOfLifeController {
     pub fn new(model: Universe) -> Self {
-        Self {
-            model
+        Self { model }
+    }
+
+    fn build_view_model(&self) -> GridViewModel {
+        let mut entities = Vec::new();
+        for row in 0..self.model.height() {
+            for col in 0..self.model.width() {
+                if let Cell::Alive = self.model.cell_at(row, col) {
+                    let entity = Entity::new(ON_COLOR, row, col);
+                    entities.push(entity);
+                }
+            }
         }
+        GridViewModel::new(
+            self.model.height(),
+            self.model.width(),
+            entities,
+            BACKGROUND_COLOR,
+        )
     }
 }
 
 impl Controller for GameOfLifeController {
     fn update(&mut self) -> GridViewModel {
         self.model.next_gen();
-        let mut entities = Vec::new();
-        for row in 0..self.model.height() {
-            for col in 0..self.model.width() {
-                if let Cell::Alive = self.model.cell_at(row, col) {
-                    let entity = Entity::new(ON_COLOR, row, col);
-                    entities.push(entity);
-                } 
-            }
-        }
-        GridViewModel::new(
-            self.model.height(),
-            self.model.width(),
-            entities,
-            BACKGROUND_COLOR)
+        self.build_view_model()
     }
 
     fn mouse_click(&mut self, row: usize, col: usize) -> GridViewModel {
         self.model.toggle_cell_at(row, col);
-        let mut entities = Vec::new();
-        for row in 0..self.model.height() {
-            for col in 0..self.model.width() {
-                if let Cell::Alive = self.model.cell_at(row, col) {
-                    let entity = Entity::new(ON_COLOR, row, col);
-                    entities.push(entity);
-                } 
-            }
-        }
-        GridViewModel::new(
-            self.model.height(),
-            self.model.width(),
-            entities,
-            BACKGROUND_COLOR)
+        self.build_view_model()
     }
-    
 }
 
 fn main() -> io::Result<()> {
