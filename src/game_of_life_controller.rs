@@ -1,12 +1,11 @@
- use piston_window::*;
 use crate::game_of_life::{Cell, Universe};
 use crate::grid_view::{Controller, Entity, GridViewModel};
 
 pub const ROWS: usize = 50;
 pub const COLS: usize = 50;
 
-pub const ON_COLOR: [f32; 4] = color::BLUE;
-pub const BACKGROUND_COLOR: [f32; 4] = color::BLACK;
+const ON_COLOR: [f32; 4] = [0.0, 0.0, 255.0, 1.0]; // BLUE
+const BACKGROUND_COLOR: [f32; 4] = [0.0, 0.0, 0.0, 1.0]; //BLACK
 
 pub struct GameOfLifeController {
     model: Universe,
