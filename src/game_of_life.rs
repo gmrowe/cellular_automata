@@ -1,16 +1,14 @@
 use std::fmt;
 
 pub struct Rng {
-    seed: u64
+    seed: u64,
 }
 
 impl Rng {
     pub fn new(seed: u64) -> Self {
-        Self {
-            seed,
-        }
+        Self { seed }
     }
-    
+
     pub fn next_rnd(&mut self) -> u32 {
         const M: u64 = 1 << 48;
         const A: u64 = 25214903917;
@@ -24,12 +22,9 @@ impl Iterator for Rng {
     type Item = u32;
 
     fn next(&mut self) -> Option<Self::Item> {
-        Some(self.next_rnd())     
+        Some(self.next_rnd())
     }
-
-
 }
-
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Cell {
@@ -40,16 +35,20 @@ pub enum Cell {
 impl Cell {
     pub fn next_cell_state(&self, living_neighbors: u8) -> Cell {
         match self {
-            Cell::Alive => if living_neighbors < 2 || living_neighbors > 3  {
-                Cell::Dead
-            } else {
-                Cell::Alive
-            },
-            
-            Cell::Dead => if living_neighbors == 3 {
-                Cell::Alive
-            } else {
-                Cell::Dead
+            Cell::Alive => {
+                if living_neighbors < 2 || living_neighbors > 3 {
+                    Cell::Dead
+                } else {
+                    Cell::Alive
+                }
+            }
+
+            Cell::Dead => {
+                if living_neighbors == 3 {
+                    Cell::Alive
+                } else {
+                    Cell::Dead
+                }
             }
         }
     }
@@ -57,11 +56,11 @@ impl Cell {
     pub fn is_alive(&self) -> bool {
         match self {
             Cell::Alive => true,
-            Cell::Dead  => false,
+            Cell::Dead => false,
         }
     }
-}    
-    
+}
+
 pub struct Universe {
     generation: u32,
     height: usize,
@@ -74,7 +73,10 @@ impl Universe {
         let symbols: Vec<char> = self
             .cells
             .iter()
-            .map(|n| match n { Cell::Dead =>  '.' , Cell::Alive => '*' })
+            .map(|n| match n {
+                Cell::Dead => '.',
+                Cell::Alive => '*',
+            })
             .collect();
 
         symbols
@@ -115,23 +117,22 @@ impl Universe {
         &self.cells[index]
     }
 
-    pub fn in_bounds(&self, row: isize, col: isize)  -> bool {
-        row >= 0
-            && row < self.height as isize
-            && col >= 0
-            && col < self.width as isize
+    pub fn in_bounds(&self, row: isize, col: isize) -> bool {
+        row >= 0 && row < self.height as isize && col >= 0 && col < self.width as isize
     }
 
     pub fn count_living_neighbors(&self, row: usize, col: usize) -> u8 {
-        let deltas: Vec<(isize, isize)> =
-            vec![(-1, -1), (-1, 0), (-1, 1),
-                 (0, -1),  /*cell*/ (0, 1),
-                 (1, -1),  (1, 0),  (1, 1)];
-        
+        let deltas: Vec<(isize, isize)> = vec![
+            (-1, -1), (-1, 0), (-1, 1),
+            ( 0, -1), /*cell*/ ( 0, 1),
+            ( 1, -1), ( 1, 0), ( 1, 1)
+        ];
+
         let irow = row as isize;
         let icol = col as isize;
-        
-        deltas.into_iter()
+
+        deltas
+            .into_iter()
             .filter(|(dr, dc)| self.in_bounds(irow + dr, icol + dc))
             .filter(|(dr, dc)| {
                 self.cell_at((irow + dr) as usize, (icol + dc) as usize)
@@ -141,7 +142,7 @@ impl Universe {
     }
 
     pub fn next_gen(&mut self) {
-        let mut new_cells: Vec<Cell> = Vec::new();
+        let mut new_cells: Vec<Cell> = Vec::with_capacity(self.cells.len());
         for r in 0..self.height {
             for c in 0..self.width {
                 let living_neighbors = self.count_living_neighbors(r, c);
@@ -176,12 +177,7 @@ mod game_of_life_tests {
     fn simple_universe_string() -> String {
         format!(
             "{}\n{}\n{}\n{}\n{}\n{}",
-            "Generation 1:",
-            "4 8",
-            "........",
-            "....*...",
-            "...**...",
-            "........"
+            "Generation 1:", "4 8", "........", "....*...", "...**...", "........"
         )
     }
 
@@ -253,21 +249,10 @@ mod game_of_life_tests {
 
     #[test]
     fn a_universe_can_advance_a_generation() {
-        let universe_string =
-            format!("{}\n{}\n{}\n{}",
-                    "Generation 1:",
-                    "2 2",
-                    ".*",
-                    "**");
+        let universe_string = format!("{}\n{}\n{}\n{}", "Generation 1:", "2 2", ".*", "**");
         let universe = Universe::from_string(&universe_string);
         let next_gen = universe.next_gen();
-        let expected_next_gen =
-            format!("{}\n{}\n{}\n{}",
-                    "Generation 2:",
-                    "2 2",
-                    "**",
-                    "**");
+        let expected_next_gen = format!("{}\n{}\n{}\n{}", "Generation 2:", "2 2", "**", "**");
         assert_eq!(expected_next_gen, next_gen.to_string());
     }
-    
 }
