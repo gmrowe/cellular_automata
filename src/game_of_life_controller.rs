@@ -46,4 +46,14 @@ impl Controller for GameOfLifeController {
         self.model.toggle_cell_at(row, col);
         self.build_view_model()
     }
+
+    fn clear(&mut self) -> GridViewModel {
+        for row in 0..self.model.height() {
+            for col in 0..self.model.width() {
+                self.model.set_cell_at(row, col, Cell::Dead);
+            }
+            
+        }
+        self.build_view_model()
+    }
 }

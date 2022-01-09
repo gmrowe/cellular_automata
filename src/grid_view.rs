@@ -1,10 +1,12 @@
 extern crate piston_window;
 
+use piston_window::draw_state::DrawState;
 use piston_window::*;
 
 pub trait Controller {
     fn update(&mut self) -> GridViewModel;
     fn mouse_click(&mut self, row: usize, col: usize) -> GridViewModel;
+    fn clear(&mut self) -> GridViewModel;
 }
 
 pub struct Entity {
@@ -82,26 +84,26 @@ where
         }
     }
 
-    fn height(&self) -> f64 {
+    fn cell_height(&self) -> f64 {
         let size = self.window.size();
         self.view_model
             .as_ref()
             .map(|model| size.height / model.rows as f64)
-            .unwrap_or(0.0)
+            .unwrap_or(size.height)
     }
 
-    fn width(&self) -> f64 {
+    fn cell_width(&self) -> f64 {
         let size = self.window.size();
         self.view_model
             .as_ref()
             .map(|model| size.width / model.cols as f64)
-            .unwrap_or(0.0)
+            .unwrap_or(size.width)
     }
 
-    fn render(&mut self, e: &Event) {
+    fn render_view_model(&mut self, e: &Event) {
         if let Some(model) = &self.view_model {
-            let height = self.height();
-            let width = self.width();
+            let width = self.cell_width();
+            let height = self.cell_height();
             self.window.draw_2d(e, |cxt, g, _device| {
                 clear(model.background_color, g);
 
@@ -112,6 +114,45 @@ where
                     rectangle(entity.color, dims, cxt.transform, g);
                 }
             });
+        }
+    }
+
+    fn render_pause(&mut self, e: &Event) {
+        const PAUSE_BAR_W: f64 = 30.0;
+        const PAUSE_BAR_H: f64 = 100.0;
+        const PAUSE_GAP: f64 = 20.0;
+        const PAUSE_CORNER_RAD: f64 = 10.5;
+        const PAUSE_BAR_ALPHA: f32 = 0.15;
+        const PAUSE_BAR_COLOR: [f32; 4] = [0.8, 0.8, 0.8, PAUSE_BAR_ALPHA]; // 0xCCCCC
+        let win_size = self.window.size();
+        
+        let left_bar_dims = [
+            (win_size.width - PAUSE_GAP) / 2.0 - PAUSE_BAR_W,
+            (win_size.height - PAUSE_BAR_H) / 2.0,
+            PAUSE_BAR_W,
+            PAUSE_BAR_H,
+        ];
+        let right_bar_dims = [
+            (win_size.width + PAUSE_GAP) / 2.0,
+            (win_size.height - PAUSE_BAR_H) / 2.0,
+            PAUSE_BAR_W,
+            PAUSE_BAR_H,
+        ];
+        let rect = Rectangle::new_round(PAUSE_BAR_COLOR, PAUSE_CORNER_RAD);
+        
+        self.window.draw_2d(e, |cxt, g, _device| {
+            rect.draw(left_bar_dims, &DrawState::default(), cxt.transform, g);
+            rect.draw(right_bar_dims, &DrawState::default(), cxt.transform, g);
+        });
+    }
+
+    fn render(&mut self, e: &Event) {
+        match self.play_state {
+            PlayState::Running => self.render_view_model(e),
+            PlayState::Paused => {
+                self.render_view_model(e);
+                self.render_pause(e);
+            }
         }
     }
 
@@ -126,11 +167,17 @@ where
             }
         }
 
+        if let Button::Keyboard(Key::X) = args.button {
+            if let ButtonState::Press = args.state {
+                self.view_model = Some(self.controller.clear());
+            }
+        }
+
         if let Button::Mouse(MouseButton::Left) = args.button {
             if let ButtonState::Press = args.state {
                 if let Some([x, y]) = pos {
-                    let row = (y / self.height()).floor() as usize;
-                    let col = (x / self.width()).floor() as usize;
+                    let row = (y / self.cell_height()).floor() as usize;
+                    let col = (x / self.cell_width()).floor() as usize;
                     self.view_model = Some(self.controller.mouse_click(row, col));
                 }
             }
@@ -140,6 +187,10 @@ where
     pub fn game_loop(&mut self) {
         let mut last_cursor_pos = None;
         while let Some(e) = self.events.next(&mut self.window) {
+            if let Some(pos) = e.mouse_cursor_args() {
+                last_cursor_pos = Some(pos);
+            }
+
             if let Some(_) = e.render_args() {
                 self.render(&e);
             }
@@ -148,10 +199,6 @@ where
                 if let Some(_) = e.update_args() {
                     self.update(&e);
                 }
-            }
-
-            if let Some(pos) = e.mouse_cursor_args() {
-                last_cursor_pos = Some(pos);
             }
 
             if let Some(args) = e.button_args() {
