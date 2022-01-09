@@ -86,11 +86,26 @@ where
         }
     }
 
+    fn height(&self) -> f64 {
+        let size = self.window.size();
+        self.view_model
+            .as_ref()
+            .map(|model| size.height / model.rows as f64)
+            .unwrap_or(0.0)
+    }
+
+    fn width(&self) -> f64 {
+        let size = self.window.size();
+        self.view_model
+            .as_ref()
+            .map(|model| size.width / model.cols as f64)
+            .unwrap_or(0.0)
+    }
+
     fn render(&mut self, e: &Event) {
         if let Some(model) = &self.view_model {
-            let size = self.window.size();
-            let height = size.height / model.rows as f64;
-            let width = size.width / model.cols as f64;
+            let height = self.height();
+            let width = self.width();
             self.window.draw_2d(e, |cxt, g, _device| {
                 clear(model.background_color, g);
 
@@ -111,7 +126,7 @@ where
 
     fn handle_button_event(
         &mut self,
-        e: &Event,
+        _e: &Event,
         args: &ButtonArgs,
         pos: Option<[f64; 2]>
     ) {
@@ -124,15 +139,10 @@ where
         if let Button::Mouse(MouseButton::Left) = args.button {
             if let ButtonState::Press = args.state {
                 if let Some([x, y]) = pos {
-                    let size = self.window.size();
-                    if let Some(model) = &self.view_model{
-                        let height = size.height / model.rows as f64;
-                        let width = size.width / model.cols as f64;
-                        let row = (y / height).floor() as usize;
-                        let col = (x / width).floor() as usize;
-                        self.view_model = Some(self.controller.mouse_click(row, col));
-                        self.render(e)
-                    }
+                    let row = (y / self.height()).floor() as usize;
+                    let col = (x / self.width()).floor() as usize;
+                    self.view_model = Some(self.controller.mouse_click(row, col));
+                    //self.render(e)
                 }
             }
         }
