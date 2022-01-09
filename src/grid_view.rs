@@ -45,12 +45,12 @@ impl GridViewModel {
     }
 }
 
-enum RenderState {
+enum PlayState {
     Paused,
     Running,
 }
 
-impl RenderState {
+impl PlayState {
     fn toggle(&self) -> Self {
         match self {
             Self::Paused => Self::Running,
@@ -67,7 +67,7 @@ where
     events: Events,
     controller: C,
     view_model: Option<GridViewModel>,
-    render_state: RenderState,
+    play_state: PlayState,
 }
 
 impl<C> GridView<C>
@@ -79,14 +79,14 @@ where
             window,
             events,
             controller,
-            render_state: RenderState::Running,
+            play_state: PlayState::Running,
             view_model: None,
         }
     }
 
     fn render(&mut self, e: &Event, _args: &RenderArgs) {
-        let size = self.window.size();
         if let Some(model) = &self.view_model {
+            let size = self.window.size();
             let height = size.height / model.rows as f64;
             let width = size.width / model.cols as f64;
             self.window.draw_2d(e, |cxt, g, _device| {
@@ -96,12 +96,10 @@ where
                     let r = entity.row as f64;
                     let c = entity.col as f64;
                     let dims = [c * width, r * height, width, height];
-                    rectangle(entity.color, dims, cxt.transform, g);                   
+                    rectangle(entity.color, dims, cxt.transform, g);
                 }
-
             });
-        }
-        
+        }  
     }
 
     fn update(&mut self, e: &Event, _args: &UpdateArgs) {
@@ -109,9 +107,17 @@ where
         
     }
 
+    fn handle_button_event(& mut self, _e: &Event, args: &ButtonArgs) {
+        if let Button::Keyboard(Key::Space) = args.button {
+            if let ButtonState::Press = args.state {              
+                self.play_state = self.play_state.toggle();              
+            }
+        }
+    }
+
     pub fn game_loop(&mut self) {
         while let Some(e) = self.events.next(&mut self.window) {
-            if let RenderState::Running = self.render_state {
+            if let PlayState::Running = self.play_state {
                 if let Some(args) = e.render_args() {
                     self.render(&e, &args);
                 }
@@ -122,11 +128,7 @@ where
             }
 
             if let Some(args) = e.button_args() {
-                if let Button::Keyboard(Key::Space) = args.button {
-                    if let ButtonState::Release = args.state {              
-                        self.render_state = self.render_state.toggle()
-                    }                 
-                }
+               self.handle_button_event(&e, &args);
             }
         }
     }
