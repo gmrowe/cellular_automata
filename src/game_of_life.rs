@@ -123,9 +123,14 @@ impl Universe {
 
     pub fn count_living_neighbors(&self, row: usize, col: usize) -> u8 {
         let deltas: Vec<(isize, isize)> = vec![
-            (-1, -1), (-1, 0), (-1, 1),
-            ( 0, -1), /*cell*/ ( 0, 1),
-            ( 1, -1), ( 1, 0), ( 1, 1)
+            (-1, -1),
+            (-1, 0),
+            (-1, 1),
+            (0, -1),
+            /*cell*/ (0, 1),
+            (1, -1),
+            (1, 0),
+            (1, 1),
         ];
 
         let irow = row as isize;

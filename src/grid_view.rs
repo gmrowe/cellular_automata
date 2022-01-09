@@ -22,17 +22,17 @@ impl GridView {
         events: Events,
         universe: Universe,
         rows: usize,
-        cols: usize
+        cols: usize,
     ) -> Self {
         Self {
             window,
             events,
             universe,
             rows,
-            cols
+            cols,
         }
     }
-    
+
     fn render(&mut self, e: &Event, _args: &RenderArgs) {
         let size = self.window.size();
         let height = size.height / self.rows as f64;

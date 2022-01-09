@@ -1,11 +1,11 @@
 extern crate piston_window;
-mod grid_view;
 mod game_of_life;
+mod grid_view;
 
-use piston_window::*;
-use std::io;
 use crate::game_of_life::{Cell, Rng, Universe};
 use crate::grid_view::GridView;
+use piston_window::*;
+use std::io;
 
 const FPS: u64 = 60;
 const UPS: u64 = 50;
