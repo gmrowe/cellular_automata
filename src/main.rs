@@ -5,8 +5,8 @@ mod grid_view;
 mod rng;
 
 use crate::game_of_life::{Cell, Universe};
+use crate::game_of_life_controller::{GameOfLifeController, COLS, ROWS};
 use crate::grid_view::GridView;
-use crate::game_of_life_controller::{GameOfLifeController, ROWS, COLS};
 use crate::rng::Rng;
 
 use piston_window::*;

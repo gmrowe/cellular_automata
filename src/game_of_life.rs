@@ -50,6 +50,52 @@ pub struct Universe {
 }
 
 impl Universe {
+    fn parse_generation_number_from_header(header: &str) -> u32 {
+        let generation_number_string: String =
+            header.chars().filter(|&c| c.is_ascii_digit()).collect();
+
+        generation_number_string.parse().unwrap()
+    }
+
+    fn parse_height_width_from_header(header: &str) -> (usize, usize) {
+        let height_width: Vec<&str> = header.split_whitespace().collect();
+        let height: usize = height_width[0].parse().unwrap();
+        let width: usize = height_width[1].parse().unwrap();
+        (height, width)
+    }
+
+    fn parse_cells_from_grid(grid: &[&str], height: usize, width: usize) -> Vec<Cell> {
+        let mut cells: Vec<Cell> = Vec::with_capacity(height * width);
+
+        for row in grid {
+            for c in row.chars() {
+                if c == '.' {
+                    cells.push(Cell::Dead);
+                } else {
+                    cells.push(Cell::Alive);
+                }
+            }
+        }
+        cells
+    }
+
+    pub fn from_string(world_string: &str) -> Self {
+        let lines: Vec<&str> = world_string.lines().collect();
+        let generation_header = lines[0];
+        let height_width_header = lines[1];
+        let cell_grid = &lines[2..];
+
+        let generation = Universe::parse_generation_number_from_header(generation_header);
+        let (height, width) = Universe::parse_height_width_from_header(height_width_header);
+        let cells: Vec<Cell> = Universe::parse_cells_from_grid(cell_grid, height, width);
+        Self {
+            generation,
+            height,
+            width,
+            cells,
+        }
+    }
+
     fn display_grid(&self) -> String {
         let symbols: Vec<char> = self
             .cells
@@ -119,42 +165,32 @@ impl Universe {
         row >= 0 && row < self.height as isize && col >= 0 && col < self.width as isize
     }
 
-    pub fn count_living_neighbors(&self, row: usize, col: usize) -> u8 {
-        let deltas: Vec<(isize, isize)> = vec![
-            (-1, -1),
-            (-1, 0),
-            (-1, 1),
-            (0, -1),
-            /*cell*/ (0, 1),
-            (1, -1),
-            (1, 0),
-            (1, 1),
-        ];
-
-        let irow = row as isize;
-        let icol = col as isize;
-
-        deltas
-            .into_iter()
-            .filter(|(dr, dc)| self.in_bounds(irow + dr, icol + dc))
-            .filter(|(dr, dc)| {
-                self.cell_at((irow + dr) as usize, (icol + dc) as usize)
-                    .is_alive()
-            })
-            .count() as u8
-    }
-
     pub fn next_gen(&mut self) {
         let mut new_cells: Vec<Cell> = Vec::with_capacity(self.cells.len());
+        let mut living_neighbors: Vec<u8> = vec![0; self.cells.len()];
         for r in 0..self.height {
             for c in 0..self.width {
-                let living_neighbors = self.count_living_neighbors(r, c);
-                let old_cell = self.cell_at(r, c);
-                let new_cell = old_cell.next_cell_state(living_neighbors);
-                new_cells.push(new_cell);
+                if self.cell_at(r, c).is_alive() {
+                    for dr in -1..=1 {
+                        for dc in -1..=1 {
+                            if dr != 0 || dc != 0 {
+                                let nrow = dr + r as isize;
+                                let ncol = dc + c as isize;
+                                if self.in_bounds(nrow, ncol) {
+                                    let index = nrow as usize * self.width + ncol as usize;
+                                    living_neighbors[index] += 1
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 
+        for (cell, count) in self.cells.iter().zip(living_neighbors.iter()) {
+            let new_cell = cell.next_cell_state(*count);
+            new_cells.push(new_cell);
+        }
         self.generation += 1;
         self.cells = new_cells;
     }
@@ -253,9 +289,9 @@ mod game_of_life_tests {
     #[test]
     fn a_universe_can_advance_a_generation() {
         let universe_string = format!("{}\n{}\n{}\n{}", "Generation 1:", "2 2", ".*", "**");
-        let universe = Universe::from_string(&universe_string);
-        let next_gen = universe.next_gen();
+        let mut universe = Universe::from_string(&universe_string);
+        universe.next_gen();
         let expected_next_gen = format!("{}\n{}\n{}\n{}", "Generation 2:", "2 2", "**", "**");
-        assert_eq!(expected_next_gen, next_gen.to_string());
+        assert_eq!(expected_next_gen, universe.to_string());
     }
 }

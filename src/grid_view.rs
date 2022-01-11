@@ -125,7 +125,7 @@ where
         const PAUSE_BAR_ALPHA: f32 = 0.15;
         const PAUSE_BAR_COLOR: [f32; 4] = [0.8, 0.8, 0.8, PAUSE_BAR_ALPHA]; // 0xCCCCC
         let win_size = self.window.size();
-        
+
         let left_bar_dims = [
             (win_size.width - PAUSE_GAP) / 2.0 - PAUSE_BAR_W,
             (win_size.height - PAUSE_BAR_H) / 2.0,
@@ -139,7 +139,7 @@ where
             PAUSE_BAR_H,
         ];
         let rect = Rectangle::new_round(PAUSE_BAR_COLOR, PAUSE_CORNER_RAD);
-        
+
         self.window.draw_2d(e, |cxt, g, _device| {
             rect.draw(left_bar_dims, &DrawState::default(), cxt.transform, g);
             rect.draw(right_bar_dims, &DrawState::default(), cxt.transform, g);
@@ -191,12 +191,12 @@ where
                 last_cursor_pos = Some(pos);
             }
 
-            if let Some(_) = e.render_args() {
+            if e.render_args().is_some() {
                 self.render(&e);
             }
 
             if let PlayState::Running = self.play_state {
-                if let Some(_) = e.update_args() {
+                if e.update_args().is_some() {
                     self.update(&e);
                 }
             }
