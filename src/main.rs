@@ -5,7 +5,7 @@ mod grid_view;
 mod rng;
 
 use crate::game_of_life::{Cell, Universe};
-use crate::game_of_life_controller::{GameOfLifeController, COLS, ROWS};
+use crate::game_of_life_controller::{GameOfLifeController};
 use crate::grid_view::GridView;
 use crate::rng::Rng;
 
@@ -14,6 +14,11 @@ use std::io;
 
 const FPS: u64 = 60;
 const UPS: u64 = 50;
+
+
+const ROWS: usize = 96;
+const COLS: usize = 96;
+
 
 fn random_cells(num: usize) -> Vec<Cell> {
     let seed = 96155;

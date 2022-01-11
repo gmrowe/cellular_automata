@@ -1,9 +1,6 @@
 use crate::game_of_life::{Cell, Universe};
 use crate::grid_view::{Controller, Entity, GridViewModel};
 
-pub const ROWS: usize = 150;
-pub const COLS: usize = 150;
-
 const ON_COLOR: [f32; 4] = [0.0, 0.0, 255.0, 1.0]; // BLUE
 const BACKGROUND_COLOR: [f32; 4] = [0.0, 0.0, 0.0, 1.0]; //BLACK
 
