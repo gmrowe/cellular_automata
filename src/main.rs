@@ -13,11 +13,11 @@ use piston_window::*;
 use std::io;
 
 const FPS: u64 = 60;
-const UPS: u64 = 50;
+const UPS: u64 = 10;
 
 
-const ROWS: usize = 96;
-const COLS: usize = 96;
+const ROWS: usize = 300;
+const COLS: usize = 540;
 
 
 fn random_cells(num: usize) -> Vec<Cell> {
@@ -38,7 +38,7 @@ fn random_cells(num: usize) -> Vec<Cell> {
 }
 
 fn main() -> io::Result<()> {
-    let window: PistonWindow = WindowSettings::new("piston: hello_world", [600, 600])
+    let window: PistonWindow = WindowSettings::new("Conway's game of life", [1920, 1080])
         .exit_on_esc(true)
         .build()
         .expect("Couldn't build window");

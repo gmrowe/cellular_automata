@@ -33,18 +33,19 @@ impl GameOfLifeController {
 }
 
 impl Controller for GameOfLifeController {
-    fn update(&mut self) -> GridViewModel {
+    fn update(&mut self) {
         self.model.next_gen();
-        self.build_view_model()
     }
 
-    fn mouse_click(&mut self, row: usize, col: usize) -> GridViewModel {
+    fn mouse_click(&mut self, row: usize, col: usize) {
         self.model.toggle_cell_at(row, col);
-        self.build_view_model()
     }
 
-    fn clear(&mut self) -> GridViewModel {
+    fn clear(&mut self) {
         self.model.clear();
+    }
+
+    fn model(&self) -> GridViewModel {
         self.build_view_model()
     }
 }

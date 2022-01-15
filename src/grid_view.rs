@@ -4,9 +4,10 @@ use piston_window::draw_state::DrawState;
 use piston_window::*;
 
 pub trait Controller {
-    fn update(&mut self) -> GridViewModel;
-    fn mouse_click(&mut self, row: usize, col: usize) -> GridViewModel;
-    fn clear(&mut self) -> GridViewModel;
+    fn model(&self) -> GridViewModel;
+    fn update(&mut self);
+    fn mouse_click(&mut self, row: usize, col: usize);
+    fn clear(&mut self);
 }
 
 pub struct Entity {
@@ -66,7 +67,6 @@ where
     window: PistonWindow,
     events: Events,
     controller: C,
-    view_model: Option<GridViewModel>,
     play_state: PlayState,
 }
 
@@ -80,41 +80,36 @@ where
             events,
             controller,
             play_state: PlayState::Running,
-            view_model: None,
         }
     }
 
     fn cell_height(&self) -> f64 {
         let size = self.window.size();
-        self.view_model
-            .as_ref()
-            .map(|model| size.height / model.rows as f64)
-            .unwrap_or(size.height)
+        let model = self.controller.model();
+        size.height / model.rows as f64
     }
 
     fn cell_width(&self) -> f64 {
         let size = self.window.size();
-        self.view_model
-            .as_ref()
-            .map(|model| size.width / model.cols as f64)
-            .unwrap_or(size.width)
+        let model = self.controller.model();
+        size.width / model.cols as f64
     }
 
     fn render_view_model(&mut self, e: &Event) {
-        if let Some(model) = &self.view_model {
-            let width = self.cell_width();
-            let height = self.cell_height();
-            self.window.draw_2d(e, |cxt, g, _device| {
-                clear(model.background_color, g);
+        let model = self.controller.model();
+        let width = self.cell_width();
+        let height = self.cell_height();
+        self.window.draw_2d(e, |cxt, g, _device| {
+            clear(model.background_color, g);
 
-                for entity in model.entities.iter() {
-                    let r = entity.row as f64;
-                    let c = entity.col as f64;
-                    let dims = [c * width, r * height, width, height];
-                    rectangle(entity.color, dims, cxt.transform, g);
-                }
-            });
-        }
+            for entity in model.entities.iter() {
+                let r = entity.row as f64;
+                let c = entity.col as f64;
+                let dims = [c * width, r * height, width, height];
+                rectangle(entity.color, dims, cxt.transform, g);
+            }
+        });
+        
     }
 
     fn render_pause(&mut self, e: &Event) {
@@ -157,7 +152,7 @@ where
     }
 
     fn update(&mut self, _e: &Event) {
-        self.view_model = Some(self.controller.update());
+        self.controller.update();
     }
 
     fn handle_button_event(&mut self, _e: &Event, args: &ButtonArgs, pos: Option<[f64; 2]>) {
@@ -169,7 +164,7 @@ where
 
         if let Button::Keyboard(Key::X) = args.button {
             if let ButtonState::Press = args.state {
-                self.view_model = Some(self.controller.clear());
+                self.controller.clear();
             }
         }
 
@@ -178,7 +173,7 @@ where
                 if let Some([x, y]) = pos {
                     let row = (y / self.cell_height()).floor() as usize;
                     let col = (x / self.cell_width()).floor() as usize;
-                    self.view_model = Some(self.controller.mouse_click(row, col));
+                    self.controller.mouse_click(row, col);
                 }
             }
         }
