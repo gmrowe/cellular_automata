@@ -50,52 +50,6 @@ pub struct Universe {
 }
 
 impl Universe {
-    fn parse_generation_number_from_header(header: &str) -> u32 {
-        let generation_number_string: String =
-            header.chars().filter(|&c| c.is_ascii_digit()).collect();
-
-        generation_number_string.parse().unwrap()
-    }
-
-    fn parse_height_width_from_header(header: &str) -> (usize, usize) {
-        let height_width: Vec<&str> = header.split_whitespace().collect();
-        let height: usize = height_width[0].parse().unwrap();
-        let width: usize = height_width[1].parse().unwrap();
-        (height, width)
-    }
-
-    fn parse_cells_from_grid(grid: &[&str], height: usize, width: usize) -> Vec<Cell> {
-        let mut cells: Vec<Cell> = Vec::with_capacity(height * width);
-
-        for row in grid {
-            for c in row.chars() {
-                if c == '.' {
-                    cells.push(Cell::Dead);
-                } else {
-                    cells.push(Cell::Alive);
-                }
-            }
-        }
-        cells
-    }
-
-    pub fn from_string(world_string: &str) -> Self {
-        let lines: Vec<&str> = world_string.lines().collect();
-        let generation_header = lines[0];
-        let height_width_header = lines[1];
-        let cell_grid = &lines[2..];
-
-        let generation = Universe::parse_generation_number_from_header(generation_header);
-        let (height, width) = Universe::parse_height_width_from_header(height_width_header);
-        let cells: Vec<Cell> = Universe::parse_cells_from_grid(cell_grid, height, width);
-        Self {
-            generation,
-            height,
-            width,
-            cells,
-        }
-    }
-
     fn display_grid(&self) -> String {
         let symbols: Vec<char> = self
             .cells
@@ -213,20 +167,62 @@ impl fmt::Display for Universe {
 mod game_of_life_tests {
     use super::*;
 
+    fn parse_generation_number_from_header(header: &str) -> u32 {
+        let generation_number_string: String =
+            header.chars().filter(|&c| c.is_ascii_digit()).collect();
+
+        generation_number_string.parse().unwrap()
+    }
+
+    fn parse_height_width_from_header(header: &str) -> (usize, usize) {
+        let height_width: Vec<&str> = header.split_whitespace().collect();
+        let height: usize = height_width[0].parse().unwrap();
+        let width: usize = height_width[1].parse().unwrap();
+        (height, width)
+    }
+
+    fn parse_cells_from_grid(grid: &[&str], height: usize, width: usize) -> Vec<Cell> {
+        let mut cells: Vec<Cell> = Vec::with_capacity(height * width);
+
+        for row in grid {
+            for c in row.chars() {
+                if c == '.' {
+                    cells.push(Cell::Dead);
+                } else {
+                    cells.push(Cell::Alive);
+                }
+            }
+        }
+        cells
+    }
+
+    fn from_string(world_string: &str) -> Universe {
+        let lines: Vec<&str> = world_string.lines().collect();
+        let generation_header = lines[0];
+        let height_width_header = lines[1];
+        let cell_grid = &lines[2..];
+
+        let _generation = parse_generation_number_from_header(generation_header);
+        let (height, width) = parse_height_width_from_header(height_width_header);
+        let cells: Vec<Cell> = parse_cells_from_grid(cell_grid, height, width);
+        Universe::new(&cells, width)
+    }
+
+
     fn simple_universe_string() -> String {
         format!(
             "{}\n{}\n{}\n{}\n{}\n{}",
-            "Generation 1:", "4 8", "........", "....*...", "...**...", "........"
+            "Generation 0:", "4 8", "........", "....*...", "...**...", "........"
         )
     }
 
     fn simple_universe() -> Universe {
-        Universe::from_string(&simple_universe_string())
+        from_string(&simple_universe_string())
     }
 
     #[test]
     fn a_universe_stores_its_generation_number() {
-        assert_eq!(1, simple_universe().generation());
+        assert_eq!(0, simple_universe().generation());
     }
 
     #[test]
@@ -288,10 +284,10 @@ mod game_of_life_tests {
 
     #[test]
     fn a_universe_can_advance_a_generation() {
-        let universe_string = format!("{}\n{}\n{}\n{}", "Generation 1:", "2 2", ".*", "**");
-        let mut universe = Universe::from_string(&universe_string);
+        let universe_string = format!("{}\n{}\n{}\n{}", "Generation 0:", "2 2", ".*", "**");
+        let mut universe = from_string(&universe_string);
         universe.next_gen();
-        let expected_next_gen = format!("{}\n{}\n{}\n{}", "Generation 2:", "2 2", "**", "**");
+        let expected_next_gen = format!("{}\n{}\n{}\n{}", "Generation 1:", "2 2", "**", "**");
         assert_eq!(expected_next_gen, universe.to_string());
     }
 }
