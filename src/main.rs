@@ -45,6 +45,35 @@ impl GameOfLifeApp {
         }
     }
 
+    pub fn fps(&self, fps: u64) -> Self {
+        Self {
+            fps,
+            ..*self
+        }
+    }
+
+    pub fn ups(&self, ups: u64) -> Self {
+        Self {
+            ups,
+            ..*self
+        }        
+    }
+
+    pub fn rows(&self, rows: usize) -> Self {
+        Self {
+            rows,
+            ..*self
+        }        
+    }
+
+    pub fn cols(&self, cols: usize) -> Self {
+        Self {
+            cols,
+            ..*self
+        }        
+    }
+
+    
     pub fn start(&self) {
         let window: PistonWindow =
             WindowSettings::new("Conway's game of life", [1920, 1080])
@@ -60,12 +89,16 @@ impl GameOfLifeApp {
         let universe = Universe::new(&cells, self.cols);
 
         let mut view = GridView::new(window, events, GameOfLifeController::new(universe));
-        view.game_loop();
-       
+        view.game_loop();    
     }
 }
 
 fn main() -> io::Result<()> {
-    GameOfLifeApp::new().start();
+    const ROWS: usize = 200;
+    const COLS: usize = 360;
+    GameOfLifeApp::new()
+        .rows(ROWS)
+        .cols(COLS)
+        .start();
     Ok(())
 }
