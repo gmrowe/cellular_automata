@@ -12,14 +12,6 @@ use crate::rng::Rng;
 use piston_window::*;
 use std::io;
 
-const FPS: u64 = 60;
-const UPS: u64 = 10;
-
-
-const ROWS: usize = 300;
-const COLS: usize = 540;
-
-
 fn random_cells(num: usize) -> Vec<Cell> {
     let seed = 96155;
     let mut rng = Rng::new(seed);
@@ -36,20 +28,44 @@ fn random_cells(num: usize) -> Vec<Cell> {
     }
     cells
 }
+struct GameOfLifeApp {
+    fps: u64,
+    ups: u64,
+    rows: usize,
+    cols: usize,
+}
+
+impl GameOfLifeApp {
+    pub fn new() -> Self {
+        Self {
+            fps: 60,
+            ups: 10,
+            rows: 100,
+            cols: 180,
+        }
+    }
+
+    pub fn start(&self) {
+        let window: PistonWindow =
+            WindowSettings::new("Conway's game of life", [1920, 1080])
+            .exit_on_esc(true)
+            .build()
+            .expect("Couldn't build window");
+
+        let events = Events::new(EventSettings::new())
+            .max_fps(self.fps)
+            .ups(self.ups);
+
+        let cells = random_cells(self.rows * self.cols);
+        let universe = Universe::new(&cells, self.cols);
+
+        let mut view = GridView::new(window, events, GameOfLifeController::new(universe));
+        view.game_loop();
+       
+    }
+}
 
 fn main() -> io::Result<()> {
-    let window: PistonWindow = WindowSettings::new("Conway's game of life", [1920, 1080])
-        .exit_on_esc(true)
-        .build()
-        .expect("Couldn't build window");
-
-    let events = Events::new(EventSettings::new()).max_fps(FPS).ups(UPS);
-
-    let cells = random_cells(ROWS * COLS);
-    let universe = Universe::new(&cells, COLS);
-
-    let mut view = GridView::new(window, events, GameOfLifeController::new(universe));
-    view.game_loop();
-
+    GameOfLifeApp::new().start();
     Ok(())
 }
