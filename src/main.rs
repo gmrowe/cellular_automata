@@ -33,15 +33,19 @@ struct GameOfLifeApp {
     ups: u64,
     rows: usize,
     cols: usize,
+    live_color: [f32; 4],
+    dead_color: [f32; 4],
 }
 
 impl GameOfLifeApp {
     pub fn new() -> Self {
         Self {
-            fps: 60,
+            fps: 30,
             ups: 10,
-            rows: 100,
-            cols: 180,
+            rows: 50,
+            cols: 90,
+            live_color: [255.0, 255.0, 255.0, 1.0], // WHITE
+            dead_color: [0.0, 0.0, 0.0, 1.0], //BLACK
         }
     }
 
@@ -73,6 +77,19 @@ impl GameOfLifeApp {
         }        
     }
 
+    pub fn live_color(&self, live_color: [f32; 4]) -> Self {
+        Self {
+            live_color,
+            ..*self
+        }        
+    }
+
+    pub fn dead_color(&self, dead_color: [f32; 4]) -> Self {
+        Self {
+            dead_color,
+            ..*self
+        }        
+    }
     
     pub fn start(&self) {
         let window: PistonWindow =
@@ -87,8 +104,10 @@ impl GameOfLifeApp {
 
         let cells = random_cells(self.rows * self.cols);
         let universe = Universe::new(&cells, self.cols);
+        let controller =
+            GameOfLifeController::new(universe, self.live_color, self.dead_color);
 
-        let mut view = GridView::new(window, events, GameOfLifeController::new(universe));
+        let mut view = GridView::new(window, events, controller);
         view.game_loop();    
     }
 }
@@ -96,9 +115,19 @@ impl GameOfLifeApp {
 fn main() -> io::Result<()> {
     const ROWS: usize = 200;
     const COLS: usize = 360;
+    const UPS: u64 = 3;
+    const FPS: u64 = 60;
+    const GREEN: [f32; 4] = [0.0, 255.0, 0.0, 1.0];
+    const MAGENTA: [f32; 4] =  [255.0, 0.0, 255.0, 1.0];
+    
     GameOfLifeApp::new()
         .rows(ROWS)
         .cols(COLS)
+        .ups(UPS)
+        .fps(FPS)
+        .live_color(MAGENTA)
+        .dead_color(GREEN)
         .start();
+    
     Ok(())
 }
