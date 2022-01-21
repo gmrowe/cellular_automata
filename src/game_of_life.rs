@@ -119,25 +119,31 @@ impl Universe {
         row >= 0 && row < self.height as isize && col >= 0 && col < self.width as isize
     }
 
+    pub fn enumerate_cells(&self) -> EnumerateCells<impl Iterator<Item=&Cell> + '_> {
+        EnumerateCells::new(self.cells.iter(), self.width())
+    }
+
+    fn increment_neighbors(&self, row: usize, col: usize, living_neighbors: &mut [u8]) {
+        for dr in -1..=1 {
+            for dc in -1..=1 {
+                if dr != 0 || dc != 0 {
+                    let (irow, icol) = (dr + row as isize, dc + col as isize);
+                    if self.in_bounds(irow, icol) {
+                        let index = irow as usize * self.width + icol as usize;
+                        living_neighbors[index] += 1;
+                    }
+                }
+            }
+        }
+    }
+
     pub fn next_gen(&mut self) {
         let mut new_cells: Vec<Cell> = Vec::with_capacity(self.cells.len());
         let mut living_neighbors: Vec<u8> = vec![0; self.cells.len()];
-        for r in 0..self.height {
-            for c in 0..self.width {
-                if self.cell_at(r, c).is_alive() {
-                    for dr in -1..=1 {
-                        for dc in -1..=1 {
-                            if dr != 0 || dc != 0 {
-                                let nrow = dr + r as isize;
-                                let ncol = dc + c as isize;
-                                if self.in_bounds(nrow, ncol) {
-                                    let index = nrow as usize * self.width + ncol as usize;
-                                    living_neighbors[index] += 1
-                                }
-                            }
-                        }
-                    }
-                }
+        
+        for (r, c, cell) in self.enumerate_cells() {
+            if cell.is_alive() {
+                self.increment_neighbors(r, c, &mut living_neighbors)
             }
         }
 
@@ -150,6 +156,7 @@ impl Universe {
     }
 }
 
+
 impl fmt::Display for Universe {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
@@ -160,6 +167,41 @@ impl fmt::Display for Universe {
             self.width(),
             self.display_grid()
         )
+    }
+}
+
+pub struct EnumerateCells<I> {
+    cells: I,
+    width: usize,
+    row: usize,
+    col: usize,
+}
+
+impl<I> EnumerateCells<I> {
+    fn new(cells: I, width: usize) -> EnumerateCells<I> {
+        EnumerateCells {
+            cells,
+            width,
+            row: 0,
+            col: 0,
+        }
+    }
+}
+
+impl<I> Iterator for EnumerateCells<I>
+where
+    I: Iterator
+{
+    type Item = (usize, usize, <I as Iterator>::Item);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.col >= self.width {
+            self.col = 0;
+            self.row += 1;
+        }
+        let (r, c) = (self.row, self.col);
+        self.col += 1;
+        self.cells.next().map(|cell| (r, c, cell))
     }
 }
 
