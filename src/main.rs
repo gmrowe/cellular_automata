@@ -44,7 +44,7 @@ impl GameOfLifeApp {
             ups: 10,
             rows: 50,
             cols: 90,
-            live_color: [255.0, 255.0, 255.0, 1.0], // WHITE
+            live_color: [1.0, 1.0, 1.0, 1.0], // WHITE
             dead_color: [0.0, 0.0, 0.0, 1.0], //BLACK
         }
     }
@@ -113,12 +113,12 @@ impl GameOfLifeApp {
 }
 
 fn main() -> io::Result<()> {
-    const ROWS: usize = 200;
-    const COLS: usize = 360;
+    const ROWS: usize = 10 * 40;
+    const COLS: usize = 18 * 40;
     const UPS: u64 = 3;
     const FPS: u64 = 60;
-    const GREEN: [f32; 4] = [0.0, 255.0, 0.0, 1.0];
-    const MAGENTA: [f32; 4] =  [255.0, 0.0, 255.0, 1.0];
+    const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
+    const MAGENTA: [f32; 4] =  [1.0, 0.0, 1.0, 1.0];
     
     GameOfLifeApp::new()
         .rows(ROWS)

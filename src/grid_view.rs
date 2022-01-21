@@ -1,4 +1,6 @@
+
 extern crate piston_window;
+extern crate image as im;
 
 use piston_window::draw_state::DrawState;
 use piston_window::*;
@@ -95,19 +97,43 @@ where
         size.width / model.cols as f64
     }
 
+    fn to_u8_pixel(pix: &[f32; 4]) -> im::Rgba<u8> {
+        const MAX_VAL: f32 = 255.0;
+        let [r, g, b, a] = pix;
+        let normalize = |c|  {
+            (c * MAX_VAL) as u8
+        };
+        im::Rgba([normalize(r), normalize(g), normalize(b), normalize(a)])
+    }
+
     fn render_view_model(&mut self, e: &Event) {
-        let model = self.controller.model();
         let width = self.cell_width();
         let height = self.cell_height();
+        let model = self.controller.model();
+
+        let mut img = im::ImageBuffer::from_pixel(
+            model.cols as u32,
+            model.rows as u32,
+            Self::to_u8_pixel(&model.background_color)
+        );
+        
+        for entity in model.entities.iter() {
+            let r = entity.row as u32;
+            let c = entity.col as u32;
+            img.put_pixel(c, r, Self::to_u8_pixel(&entity.color));
+        }
+        let mut texture_context = TextureContext {
+            factory: self.window.factory.clone(),
+            encoder: self.window.factory.create_command_buffer().into()
+        };
+        let texture = Texture::from_image(
+                &mut texture_context,
+                &img,
+                &TextureSettings::new().mag(Filter::Nearest)
+            ).expect("Couldn't build texture");
         self.window.draw_2d(e, |cxt, g, _device| {
             clear(model.background_color, g);
-
-            for entity in model.entities.iter() {
-                let r = entity.row as f64;
-                let c = entity.col as f64;
-                let dims = [c * width, r * height, width, height];
-                rectangle(entity.color, dims, cxt.transform, g);
-            }
+            image(&texture, cxt.transform.scale(width, height), g);
         });
         
     }
