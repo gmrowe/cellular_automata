@@ -1,14 +1,13 @@
 extern crate piston_window;
 mod game_of_life;
 mod game_of_life_controller;
-mod grid_view;
 mod rng;
 
 use crate::game_of_life::{Cell, Universe};
 use crate::game_of_life_controller::{GameOfLifeController};
-use crate::grid_view::GridView;
 use crate::rng::Rng;
 
+use automata_core::grid_view::GridView;
 use piston_window::*;
 use std::io;
 
@@ -117,8 +116,6 @@ fn main() -> io::Result<()> {
     const COLS: usize = 18 * 40;
     const UPS: u64 = 5;
     const FPS: u64 = 60;
-    const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
-    const RED: [f32; 4] =  [1.0, 0.0, 0.0, 1.0];
     const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
     const MAGENTA: [f32; 4] =  [1.0, 0.0, 1.0, 1.0];
     
@@ -127,8 +124,8 @@ fn main() -> io::Result<()> {
         .cols(COLS)
         .ups(UPS)
         .fps(FPS)
-        .live_color(RED)
-        .dead_color(BLACK)
+        .live_color(MAGENTA)
+        .dead_color(GREEN)
         .start();
     
     Ok(())
