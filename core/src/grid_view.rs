@@ -76,7 +76,16 @@ impl<C> GridView<C>
 where
     C: Controller,
 {
-    pub fn new(window: PistonWindow, events: Events, controller: C) -> Self {
+    pub fn new(title: &str, fps: u64, ups: u64, controller: C) -> Self {
+        let window: PistonWindow = WindowSettings::new(title, [1920, 1080])
+            .exit_on_esc(true)
+            .build()
+            .expect("Couldn't build window");
+
+        let events = Events::new(EventSettings::new())
+            .max_fps(fps)
+            .ups(ups);
+        
         Self {
             window,
             events,

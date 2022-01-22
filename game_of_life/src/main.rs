@@ -8,7 +8,6 @@ use crate::game_of_life_controller::{GameOfLifeController};
 use crate::rng::Rng;
 
 use automata_core::grid_view::GridView;
-use piston_window::*;
 use std::io;
 
 fn random_cells(num: usize) -> Vec<Cell> {
@@ -91,22 +90,17 @@ impl GameOfLifeApp {
     }
     
     pub fn start(&self) {
-        let window: PistonWindow =
-            WindowSettings::new("Conway's game of life", [1920, 1080])
-            .exit_on_esc(true)
-            .build()
-            .expect("Couldn't build window");
-
-        let events = Events::new(EventSettings::new())
-            .max_fps(self.fps)
-            .ups(self.ups);
-
         let cells = random_cells(self.rows * self.cols);
         let universe = Universe::new(&cells, self.cols);
         let controller =
             GameOfLifeController::new(universe, self.live_color, self.dead_color);
 
-        let mut view = GridView::new(window, events, controller);
+        let mut view = GridView::new(
+            "Conway's game of life",
+            self.fps,
+            self.ups,
+            controller
+        );
         view.game_loop();    
     }
 }
